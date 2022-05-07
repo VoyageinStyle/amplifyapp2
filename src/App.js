@@ -14,7 +14,7 @@ import "@aws-amplify/ui-react/styles.css";
 import awsExports from "./aws-exports";
 Amplify.configure(awsExports);
 
-const initialFormState = { name: "", description: "" };
+const initialFormState = { name: "", description: "", image: "" };
 
 function App({ signOut, user }) {
   const [notes, setNotes] = useState([]);
@@ -97,7 +97,7 @@ function App({ signOut, user }) {
               <h2>{note.name}</h2>
               <p>{note.description}</p>
               <button onClick={() => deleteNote(note)}>Delete note</button>
-              {note.image && <img src={note.image} style={{ width: 400 }} />}
+              {note.image && <img src={note.image} style={{ width: 400 }} alt={formData.image}/>}
             </div>
           ))}
         </div>
