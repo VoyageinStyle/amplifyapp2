@@ -62,6 +62,11 @@ function App({ signOut, user }) {
   }
 
   async function deleteNote({ id }) {
+    const deleteImage = notes.find((note) => note.id === id);
+    console.log(deleteImage);
+    if (deleteImage.image) {
+      await Storage.remove(deleteImage.image);
+    }
     const newNotesArray = notes.filter((note) => note.id !== id);
     setNotes(newNotesArray);
     await API.graphql({
@@ -75,7 +80,7 @@ function App({ signOut, user }) {
       <header>
         <h1>Hello {user.username}</h1>
       </header>
-      <body>
+      <main>
         <h2>My Notes App</h2>
         <input
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -97,11 +102,17 @@ function App({ signOut, user }) {
               <h2>{note.name}</h2>
               <p>{note.description}</p>
               <button onClick={() => deleteNote(note)}>Delete note</button>
-              {note.image && <img src={note.image} style={{ width: 400 }} alt={formData.image}/>}
+              {note.image && (
+                <img
+                  src={note.image}
+                  style={{ width: 400 }}
+                  alt={formData.image}
+                />
+              )}
             </div>
           ))}
         </div>
-      </body>
+      </main>
       <footer>
         <button onClick={signOut}>Sign out</button>
       </footer>
