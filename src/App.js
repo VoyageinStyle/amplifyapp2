@@ -14,7 +14,14 @@ import "@aws-amplify/ui-react/styles.css";
 import awsExports from "./aws-exports";
 Amplify.configure(awsExports);
 
-const initialFormState = { name: "", description: "", image: "" };
+const initialFormState = {
+  name: "",
+  description: "",
+  image: "",
+  imageName: "",
+};
+
+let file;
 
 function App({ signOut, user }) {
   const [notes, setNotes] = useState([]);
@@ -24,14 +31,13 @@ function App({ signOut, user }) {
     fetchNotes();
   }, []);
 
-  async function onChange(e) {
+  async function handleChange(e) {
     if (!e.target.files[0]) return;
-    const file = e.target.files[0];
-    setFormData({ ...formData, image: file.name });
-    await Storage.put(file.name, file);
-    fetchNotes();
+    file = e.target.files[0];
+    setFormData({ ...formData, image: file.name, imageName: file.name });
+    // await Storage.put(file.name, file);
+    // fetchNotes();
   }
-
   async function fetchNotes() {
     const apiData = await API.graphql({ query: listNotes });
     const notesFromAPI = apiData.data.listNotes.items;
@@ -54,18 +60,21 @@ function App({ signOut, user }) {
       variables: { input: formData },
     });
     if (formData.image) {
-      const image = await Storage.get(formData.image);
-      formData.image = image;
+      await Storage.put(formData.imageName, file);
+      file = undefined;
     }
     setNotes([...notes, formData]);
     setFormData(initialFormState);
+    fetchNotes();
   }
 
   async function deleteNote({ id }) {
-    const deleteImage = notes.find((note) => note.id === id);
-    console.log(deleteImage);
-    if (deleteImage.image) {
-      await Storage.remove(deleteImage.image);
+    const deleteThisNote = notes.find((note) => note.id === id);
+    if (deleteThisNote.image) {
+      const imageReused = notes.find((note) => deleteThisNote.imageName === note.imageName && note.id !== deleteThisNote.id)
+      if (!imageReused) {
+      Storage.remove(deleteThisNote.imageName);
+      }
     }
     const newNotesArray = notes.filter((note) => note.id !== id);
     setNotes(newNotesArray);
@@ -94,7 +103,7 @@ function App({ signOut, user }) {
           placeholder="Note description"
           value={formData.description}
         />
-        <input type="file" onChange={onChange} />
+        <input type="file" onChange={handleChange} />
         <button onClick={createNote}>Create Note</button>
         <div style={{ marginBottom: 30 }}>
           {notes.map((note) => (
@@ -106,7 +115,7 @@ function App({ signOut, user }) {
                 <img
                   src={note.image}
                   style={{ width: 400 }}
-                  alt={formData.image}
+                  alt={note.imageName}
                 />
               )}
             </div>
